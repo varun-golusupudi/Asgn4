@@ -1,5 +1,5 @@
 // Render.js
-// Helper function for converting degrees to radians
+
 function toRadians(degrees) {
     return degrees * Math.PI / 180;
 }
@@ -84,13 +84,11 @@ function initRender() {
     
     console.log("Settings initialized:", window.settings);
     
-    // Check if GL-Matrix is loaded properly
     if (typeof mat4 === 'undefined') {
         console.error("GL-Matrix library not loaded properly!");
         return false;
     }
     
-    // CRITICAL: Check WebGL context and shader program
     if (!window.gl) {
         console.error("WebGL context not available in initRender");
         return false;

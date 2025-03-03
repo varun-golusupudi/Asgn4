@@ -2,12 +2,9 @@
 let g_startTime = performance.now() / 1000.0;
 let g_seconds = 0;
 
-function setupAnimations() {
-    // No setup needed initially, just export the update function
-}
 
 function updateAnimations(now) {
-    g_seconds = (now * 0.001) - g_startTime; // Convert milliseconds to seconds
+    g_seconds = (now * 0.001) - g_startTime; 
     if (settings.runAnimation) {
         console.log("Run animation started");
         const maxSwingAngle = 25;
@@ -30,6 +27,5 @@ function updateAnimations(now) {
     }
 }
 
-// Export for use in other files
 window.setupAnimations = setupAnimations;
 window.updateAnimations = updateAnimations;

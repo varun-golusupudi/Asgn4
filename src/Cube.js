@@ -125,7 +125,6 @@ class Cube {
         }
         
         try {
-            // CRITICAL FIX: Check if attribLocations exists
             if (!window.attribLocations) {
                 console.error("Attribute locations not available during Cube render");
                 return;
@@ -146,8 +145,6 @@ class Cube {
             mat4.transpose(normalMatrix, normalMatrix);
             window.gl.uniformMatrix4fv(uniformLocations.u_normalMatrix, false, normalMatrix);
 
-            // Set material properties
-            // Use a default color if u_materialColor is not available
             if (uniformLocations.u_materialColor) {
                 window.gl.uniform3fv(uniformLocations.u_materialColor, 
                                      this.color.length >= 3 ? this.color.slice(0, 3) : [1.0, 0.0, 0.0]);
@@ -155,7 +152,6 @@ class Cube {
 
             // Set vertex positions
             window.gl.bindBuffer(window.gl.ARRAY_BUFFER, this.vertexBuffer);
-            // CRITICAL FIX: Use undefined check with typeof instead of just undefined check
             if (typeof window.attribLocations.a_position === 'number' && 
                 window.attribLocations.a_position >= 0) {
                 window.gl.vertexAttribPointer(
@@ -174,7 +170,6 @@ class Cube {
 
             // Set normals
             window.gl.bindBuffer(window.gl.ARRAY_BUFFER, this.normalBuffer);
-            // CRITICAL FIX: Use undefined check with typeof instead of just undefined check
             if (typeof window.attribLocations.a_normal === 'number' && 
                 window.attribLocations.a_normal >= 0) {
                 window.gl.vertexAttribPointer(
@@ -188,7 +183,6 @@ class Cube {
                 window.gl.enableVertexAttribArray(window.attribLocations.a_normal);
             } else {
                 console.error("Invalid a_normal attribute location:", window.attribLocations.a_normal);
-                // We can still render without normals, so don't return
             }
 
             // Draw the cube
@@ -215,7 +209,6 @@ class Cube {
             return;
         }
 
-        // CRITICAL FIX: Check if attribLocations exists
         if (!window.attribLocations) {
             console.error("Attribute locations not available during Cube renderfast");
             return;
@@ -231,7 +224,6 @@ class Cube {
             }
             
             window.gl.bindBuffer(window.gl.ARRAY_BUFFER, this.vertexBuffer);
-            // CRITICAL FIX: Use undefined check with typeof instead of just undefined check
             if (typeof window.attribLocations.a_position === 'number' && 
                 window.attribLocations.a_position >= 0) {
                 window.gl.vertexAttribPointer(

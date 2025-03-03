@@ -1,5 +1,4 @@
 // Camera.js
-// Simple camera implementation for WebGL
 
 class Camera {
     constructor() {
@@ -146,9 +145,7 @@ function setupCamera() {
     window.g_camera = new Camera();
     console.log("Camera initialized at:", window.g_camera.eye);
     
-    // Ensure the camera is available globally for direct access
     window.camera = window.g_camera;
 }
 
-// Make setup function available globally
 window.setupCamera = setupCamera;

@@ -6,7 +6,7 @@ class Cone {
         }
         this.type = 'cone';
         this.color = [1.0, 1.0, 1.0, 1.0];
-        this.matrix = mat4.create(); // Use gl-matrix mat4
+        this.matrix = mat4.create();
         this.radius = radius;
         this.height = height;
         this.segments = segments;
