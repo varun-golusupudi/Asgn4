@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL World</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            max-height: 90vh;
+            overflow-y: auto;
+            width: 250px;
+        }
+        .slider-container {
+            margin: 5px 0;
+        }
+        .slider-container label {
+            display: inline-block;
+            width: 100px;
+            font-size: 12px;
+        }
+        .slider {
+            width: 140px;
+        }
+        button {
+            margin: 3px;
+            padding: 4px 8px;
+            background-color: #444;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        button:hover {
+            background-color: #666;
+        }
+        .button-group {
+            margin: 5px 0;
+            border-top: 1px solid #444;
+            padding-top: 5px;
+        }
+        h3, h4 {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        #happiness {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .minimize-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 0 5px;
+        }
+        .minimize-btn:hover {
+            color: white;
+        }
+        .minimized .controls-content {
+            display: none;
+        }
+        .minimized {
+            width: auto;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="webgl" width="800" height="600"></canvas>
+    
+    <div class="controls" id="controls-panel">
+        <button class="minimize-btn" id="minimize-btn">−</button>
+        <div class="controls-content">
+            <h3>Lighting Controls</h3>
+            <div class="button-group">
+                <button id="toggle-lighting">Toggle Lighting</button>
+                <button id="toggle-normal-viz">Toggle Normal Viz</button>
+                <button id="toggle-spot-light">Toggle Spotlight</button>
+            </div>
+            
+            <h4>Point Light</h4>
+            <div class="slider-container">
+                <label>Light Color:</label>
+                <input type="range" id="light-color" class="slider" min="0" max="100" value="50">
+            </div>
+            
+            <div class="slider-container">
+                <label>Light Height:</label>
+                <input type="range" id="light-position" class="slider" min="0" max="100" value="30">
+            </div>
+            
+            <div class="slider-container">
+                <label>Light Angle:</label>
+                <input type="range" id="light-angle" class="slider" min="0" max="360" value="0">
+            </div>
+            
+            <h4>Spotlight</h4>
+            <div class="slider-container">
+                <label>X Position:</label>
+                <input type="range" id="spotlight-x" class="slider" min="-5" max="5" value="0">
+            </div>
+            
+            <div class="slider-container">
+                <label>Y Position:</label>
+                <input type="range" id="spotlight-y" class="slider" min="0" max="10" value="3">
+            </div>
+            
+            <div class="slider-container">
+                <label>Z Position:</label>
+                <input type="range" id="spotlight-z" class="slider" min="-5" max="5" value="0">
+            </div>
+            
+            <div class="slider-container">
+                <label>Cone Angle:</label>
+                <input type="range" id="spotlight-angle" class="slider" min="5" max="60" value="20">
+            </div>
+            
+            <h4>Camera & Animation</h4>
+            <div class="slider-container">
+                <label>Camera Angle:</label>
+                <input type="range" id="camera-angle" class="slider" min="0" max="360" value="45">
+            </div>
+            
+            <div class="button-group">
+                <button id="run-animation">Run Animation ON</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.loadedScripts = {};
+        window.trackScript = function(name) {
+            console.log("Script loaded: " + name);
+            window.loadedScripts[name] = true;
+        }
+        
+        // Control panel minimize/maximize
+        document.addEventListener('DOMContentLoaded', function() {
+            const minimizeBtn = document.getElementById('minimize-btn');
+            const controlsPanel = document.getElementById('controls-panel');
+            
+            minimizeBtn.addEventListener('click', function() {
+                controlsPanel.classList.toggle('minimized');
+                minimizeBtn.textContent = controlsPanel.classList.contains('minimized') ? '+' : '−';
+            });
+        });
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js" onload="trackScript('gl-matrix')"></script>
+    <script src="Globals.js" onload="trackScript('Globals')"></script>
+    <script src="Shaders.js" onload="trackScript('Shaders')"></script>
+    <script src="WebGLSetup.js" onload="trackScript('WebGLSetup')"></script>
+    <script src="Cube.js" onload="trackScript('Cube')"></script>
+    <script src="Sphere.js" onload="trackScript('Sphere')"></script>
+    <script src="Cone.js" onload="trackScript('Cone')"></script>
+    <script src="Circle.js" onload="trackScript('Circle')"></script>
+    <script src="Camera.js" onload="trackScript('Camera')"></script>
+    <script src="Render.js" onload="trackScript('Render')"></script>
+    <script src="InputHandlers.js" onload="trackScript('InputHandlers')"></script>
+    <script src="Animation.js" onload="trackScript('Animation')"></script>
+    <script src="FixShader.js"></script>
+    
+    <script>
+        window.onload = function() {
+            console.log("Page loaded, checking scripts...");
+            
+            const requiredScripts = [
+                'gl-matrix', 'Globals', 'Shaders', 'WebGLSetup', 
+                'Cube', 'Sphere', 'Cone', 'Circle', 'Camera', 
+                'Render', 'InputHandlers', 'Animation'
+            ];
+            
+            let allLoaded = true;
+            let missingScripts = [];
+            for (let script of requiredScripts) {
+                if (!window.loadedScripts[script]) {
+                    console.error("Required script not loaded: " + script);
+                    missingScripts.push(script);
+                    allLoaded = false;
+                }
+            }
+            
+            if (!allLoaded) {
+                console.error("Not all scripts loaded, missing: " + missingScripts.join(", "));
+                alert("Error: Not all required scripts could be loaded. Check the console for details.");
+                return;
+            }
+            
+            console.log("All scripts loaded, initializing WebGL...");
+            if (initWebGL()) {
+                console.log("WebGL initialized successfully");
+                
+                setTimeout(() => {
+                    console.log("Starting render...");
+                    initRender();
+                    
+                    if (window.setupInputHandlers) setupInputHandlers();
+                    if (window.setupCamera) setupCamera();
+                    if (window.setupAnimations) setupAnimations();
+                    
+                    setTimeout(setupDirectControls, 500);
+                }, 100);
+            } else {
+                console.error("WebGL initialization failed");
+                alert("Failed to initialize WebGL. Your browser might not support WebGL.");
+            }
+        };
+
+        function setupDirectControls() {
+            if (typeof window.updateLightingUniforms !== 'function') {
+                window.updateLightingUniforms = function() {
+                    if (!window.gl || !window.uniformLocations) {
+                        console.error("GL or uniformLocations not available");
+                        return;
+                    }
+                    
+                    console.log("Manually updating lighting uniforms");
+                    
+                    // Point light uniforms
+                    if (window.uniformLocations.u_lightPosition) {
+                        window.gl.uniform3fv(window.uniformLocations.u_lightPosition, window.settings.lightPos);
+                        console.log("Set point light position:", window.settings.lightPos);
+                    }
+                    
+                    if (window.uniformLocations.u_lightColor) {
+                        window.gl.uniform3fv(window.uniformLocations.u_lightColor, window.settings.lightColor);
+                        console.log("Set light color:", window.settings.lightColor);
+                    }
+                    
+                    if (window.uniformLocations.u_lightOn) {
+                        window.gl.uniform1i(window.uniformLocations.u_lightOn, window.settings.lightingOn ? 1 : 0);
+                        console.log("Set point light on:", window.settings.lightingOn);
+                    }
+                    
+                    // Normal visualization
+                    if (window.uniformLocations.u_normalVisualization) {
+                        window.gl.uniform1i(window.uniformLocations.u_normalVisualization, window.settings.normalVisualization ? 1 : 0);
+                    }
+                    
+                    if (window.uniformLocations.u_lightingOn) {
+                        window.gl.uniform1i(window.uniformLocations.u_lightingOn, window.settings.lightingOn ? 1 : 0);
+                    }
+                    
+                    // Initialize spotlight direction if undefined
+                    if (!window.settings.spotlightDirection) {
+                        window.settings.spotlightDirection = [0.0, -1.0, 0.0]; // Default downward
+                    }
+                    
+                    // Initialize spotlight cutoff if undefined
+                    if (!window.settings.spotlightCutoff) {
+                        window.settings.spotlightCutoff = 20.0;
+                    }
+                    
+                    // Spotlight uniforms
+                    if (window.uniformLocations.u_spotlightPos) {
+                        window.gl.uniform3fv(window.uniformLocations.u_spotlightPos, window.settings.spotlightPos);
+                        console.log("Set spotlight position:", window.settings.spotlightPos);
+                    }
+                    
+                    if (window.uniformLocations.u_lightDirection) {
+                        window.gl.uniform3fv(window.uniformLocations.u_lightDirection, window.settings.spotlightDirection);
+                        console.log("Set spotlight direction:", window.settings.spotlightDirection);
+                    }
+                    
+                    if (window.uniformLocations.u_limit) {
+                        const limit = Math.cos(window.toRadians(window.settings.spotlightCutoff));
+                        window.gl.uniform1f(window.uniformLocations.u_limit, limit);
+                        console.log("Set spotlight limit cosine:", limit, "from angle:", window.settings.spotlightCutoff);
+                    }
+                    
+                    // Try both possible uniform names for spotlight toggle
+                    if (window.uniformLocations.u_spotlightOn) {
+                        window.gl.uniform1i(window.uniformLocations.u_spotlightOn, window.settings.spotlightOn ? 1 : 0);
+                        console.log("Set spotlight on (u_spotlightOn):", window.settings.spotlightOn);
+                    }
+                    
+                    // Also try with alternative capitalization
+                    const altSpotlightLoc = window.gl.getUniformLocation(window.shaderProgram, "u_spotLightOn");
+                    if (altSpotlightLoc) {
+                        window.gl.uniform1i(altSpotlightLoc, window.settings.spotlightOn ? 1 : 0);
+                        console.log("Set spotlight on (u_spotLightOn):", window.settings.spotlightOn);
+                    }
+                };
+                console.log("Created updateLightingUniforms function");
+            }
+            
+            console.log("Setting up direct controls...");
+            
+            const lightingBtn = document.getElementById('toggle-lighting');
+            if (lightingBtn) {
+                lightingBtn.onclick = function() {
+                    if (!window.settings) return;
+                    window.settings.lightingOn = !window.settings.lightingOn;
+                    this.textContent = window.settings.lightingOn ? "Toggle Lighting Off" : "Toggle Lighting On";
+                    window.updateLightingUniforms();
+                    console.log("Global lighting toggled:", window.settings.lightingOn);
+                };
+            }
+            
+            const normalVizBtn = document.getElementById('toggle-normal-viz');
+            if (normalVizBtn) {
+                normalVizBtn.onclick = function() {
+                    if (!window.settings) return;
+                    window.settings.normalVisualization = !window.settings.normalVisualization;
+                    this.textContent = window.settings.normalVisualization ? "Toggle Normal Viz Off" : "Toggle Normal Viz On";
+                    window.updateLightingUniforms();
+                    console.log("Normal viz toggled:", window.settings.normalVisualization);
+                };
+            }
+            
+            const spotlightBtn = document.getElementById('toggle-spot-light');
+            if (spotlightBtn) {
+                spotlightBtn.onclick = function() {
+                    if (!window.settings) return;
+                    window.settings.spotlightOn = !window.settings.spotlightOn;
+                    this.textContent = window.settings.spotlightOn ? "Toggle Spotlight Off" : "Toggle Spotlight On";
+                    window.updateLightingUniforms();
+                    console.log("Spotlight toggled:", window.settings.spotlightOn);
+                };
+            }
+            
+            const animationBtn = document.getElementById('run-animation');
+            if (animationBtn) {
+                animationBtn.onclick = function() {
+                    if (!window.settings) return;
+                    window.settings.runAnimation = !window.settings.runAnimation;
+                    this.textContent = window.settings.runAnimation ? "Run Animation OFF" : "Run Animation ON";
+                    console.log("Animation toggled:", window.settings.runAnimation);
+                };
+            }
+            
+            const lightColor = document.getElementById('light-color');
+            if (lightColor) {
+                lightColor.oninput = function() {
+                    if (!window.settings) return;
+                    const value = this.value / 100;
+                    window.settings.lightColor = [value, value, value];
+                    window.updateLightingUniforms();
+                    console.log("Light color updated:", window.settings.lightColor);
+                };
+            }
+            
+            const lightPosition = document.getElementById('light-position');
+            if (lightPosition) {
+                lightPosition.oninput = function() {
+                    if (!window.settings) return;
+                    const value = this.value / 10;
+                    window.settings.lightPos[1] = value;
+                    window.updateLightingUniforms();
+                    console.log("Light position updated:", window.settings.lightPos);
+                };
+            }
+            
+            const lightAngle = document.getElementById('light-angle');
+            if (lightAngle) {
+                lightAngle.oninput = function() {
+                    if (!window.settings) return;
+                    window.settings.lightAngle = parseFloat(this.value);
+                    console.log("Light angle updated:", window.settings.lightAngle);
+                };
+            }
+            
+            const cameraAngle = document.getElementById('camera-angle');
+            if (cameraAngle) {
+                cameraAngle.oninput = function() {
+                    if (!window.settings) return;
+                    window.settings.cameraAngle = parseFloat(this.value);
+                    console.log("Camera angle updated:", window.settings.cameraAngle);
+                };
+            }
+            
+            // Spotlight controls
+            const spotlightX = document.getElementById('spotlight-x');
+            if (spotlightX) {
+                spotlightX.oninput = function() {
+                    if (!window.settings) return;
+                    window.settings.spotlightPos[0] = parseFloat(this.value);
+                    window.updateLightingUniforms();
+                    console.log("Spotlight X updated:", window.settings.spotlightPos[0]);
+                };
+            }
+            
+            const spotlightY = document.getElementById('spotlight-y');
+            if (spotlightY) {
+                spotlightY.oninput = function() {
+                    if (!window.settings) return;
+                    window.settings.spotlightPos[1] = parseFloat(this.value);
+                    window.updateLightingUniforms();
+                    console.log("Spotlight Y updated:", window.settings.spotlightPos[1]);
+                };
+            }
+            
+            const spotlightZ = document.getElementById('spotlight-z');
+            if (spotlightZ) {
+                spotlightZ.oninput = function() {
+                    if (!window.settings) return;
+                    window.settings.spotlightPos[2] = parseFloat(this.value);
+                    window.updateLightingUniforms();
+                    console.log("Spotlight Z updated:", window.settings.spotlightPos[2]);
+                };
+            }
+            
+            const spotlightAngle = document.getElementById('spotlight-angle');
+            if (spotlightAngle) {
+                spotlightAngle.oninput = function() {
+                    if (!window.settings) return;
+                    window.settings.spotlightCutoff = parseFloat(this.value);
+                    window.updateLightingUniforms();
+                    console.log("Spotlight angle updated:", window.settings.spotlightCutoff);
+                };
+            }
+            
+            console.log("All controls set up successfully");
+        }
+    </script>
+</body>
+</html>
